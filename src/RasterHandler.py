@@ -73,7 +73,8 @@ def readRaster(fileName):
     
     
 #def createRanRaster(rows=25,cols-25,cellsize=1,xorg=0,yorg=0,nodata=-999.999,levels=1,datahi=0.,datalo=0.:
-def createRanRaster(rows=20,cols=30,cellsize=1,xorg=0,yorg=0,nodata=-999.999,levels=5,datahi=100.,datalo=0.):
+# modify cell size
+def createRanRaster(rows=20,cols=30,cellsize=2,xorg=0,yorg=0,nodata=-999.999,levels=5,datahi=100.,datalo=0.):
  
    #print (rows,cols,levels)
    
@@ -128,7 +129,7 @@ def createRanRaster(rows=20,cols=30,cellsize=1,xorg=0,yorg=0,nodata=-999.999,lev
    return Raster(dataout,xorg,yorg,cellsize,nodata)
    
 # Increase cell size to improve plotting appearance.
-def createRanRasterSlope(rows=20,cols=30,cellsize=1,xorg=0,yorg=0,nodata=-999.999,levels=5,datahi=100.,datalo=0.,focusx=None,focusy=None,ranpart=0.5):
+def createRanRasterSlope(rows=20,cols=30,cellsize=10,xorg=0,yorg=0,nodata=-999.999,levels=5,datahi=100.,datalo=0.,focusx=None,focusy=None,ranpart=0.5):
 
     if (focusx==None):
         focusx=cols/2

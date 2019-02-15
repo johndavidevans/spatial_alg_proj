@@ -14,7 +14,15 @@ def plotstreams(flownode,colour):
             plotstreams(node,colour)
 
 def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
+    """
+    Plots a raster and
+    """
     print ("\n\n{}".format(title))
+    
+    # Added to make the plot more viewable.
+    mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
+    
+    # Plot parameters.
     mp.imshow(originalRaster._data)
     mp.colorbar()
     colouri=-1
@@ -24,6 +32,7 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
             
+            # Plot lakes 
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(),node.get_y(), color="red")
                 colouri+=1
@@ -42,6 +51,7 @@ def plotExtractedData(flowRaster, extractor, title=""):
 
 def plotRaster(araster, title=""):
     print ("\n\n{}, shape is  {}".format(title, araster.shape))
+    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(araster)
     mp.colorbar()
     mp.show()
