@@ -17,30 +17,38 @@ def plotstreams(flownode,colour):
         mp.plot([x1, x2], [y1, y2], color = colour)
         if (node.numUpnodes() > 0):
             plotstreams(node, colour)  # The recursion.
+    
 
 def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     """
-    Plots a raster and
+    Overlays a FlowRaster onto its associated elevation raster.
     """
     print ("\n\n{}".format(title))
     
     # Added to make the plot more viewable.
-    mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(30, 20), dpi=80, facecolor='w', edgecolor='k')
     
-    # Plot parameters.
+    # Plot.
     mp.imshow(originalRaster._data)
     mp.colorbar()
+    
+    #  Set parameters for plotting streams
     colouri=-1
     colours=["black","red","magenta","yellow","green","cyan","white","orange","grey","brown"]
     
+    counter = 0 # tempt for finding locations
     # Iterate over all cells.
     for i in range(flowRaster.getRows()):   
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
             
-            # Plot pits and streams, and if specified, lakes.
+            # Plot pits, associated streams, and if specified and populated, lakes.
+            
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(), node.get_y(), color="red")
+                if counter == 0: # tempt for finding locations
+                    mp.scatter(node.get_x(), node.get_y(), color = "orange", s = 200) # tempt for finding locations
+                    counter += 1 # tempt for finding locations
                 colouri += 1
                 plotstreams(node, colours[colouri % len(colours)])
             if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
@@ -51,6 +59,7 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
 def plotExtractedData(flowRaster, extractor, title=""):
     """ Plots data extracted from input FlowRaster."""
     print ("\n\n{}".format(title))
+    mp.figure(num=None, figsize=(30, 20), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(flowRaster.extractValues(extractor))  
     mp.colorbar()
     mp.show()
@@ -78,7 +87,7 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
                     plotLakes=False)
     
     ################Step 2 ######################################
-    #plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - constant rain")
+    plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - constant rain")
     
     ################# step 3 #######################################
     #handle variable rainfall
@@ -123,7 +132,7 @@ rainrasterA = createRanRasterSlope(rows // resampleFactorA,
                                    4000, 1, 36, 4, .1)   
 
 calculateFlowsAndPlot(elevationRasterA, rainrasterA, resampleFactorA)
-
+    
 ############# step 5 #######################################
 #calculateFlowsAndPlot(readRaster('ascifiles/dem_hack.txt'), readRaster('ascifiles/rain_small_hack.txt'), 10)
 

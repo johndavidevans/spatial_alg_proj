@@ -69,6 +69,16 @@ class FlowNode(Point2D):
         """Returns a string giving x and y, using parental functions."""
         return "Flownode x={}, y={}".format(self.get_x(), self.get_y())
     
+    def getFlow(self):
+        """
+        Calculates the flow volume passing through a particular node by recursively
+        moving upstream.
+        """
+        self.flow = 1
+        for upnode in self.getUpnodes():
+            self.flow += upnode.getFlow()
+        return(self.flow)
+    
 class FlowRaster(Raster):
     """"""    
     def __init__(self, araster):
