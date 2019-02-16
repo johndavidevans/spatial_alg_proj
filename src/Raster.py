@@ -51,4 +51,4 @@ class Raster(object):
        if factor == 1:
            return self
        else:
-           raise ValueError("createWithIncreasedCellsize: not fully implemented so only works for scaling by factor 1!")
+           raise ValueError("createWithIncreasedCellsize: not fully implemented so only works for scaling by factor 1!" )

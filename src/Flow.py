@@ -70,7 +70,7 @@ class FlowNode(Point2D):
         return "Flownode x={}, y={}".format(self.get_x(), self.get_y())
     
 class FlowRaster(Raster):
-""""""    
+    """"""    
     def __init__(self, araster):
         """Initializes FlowRaster with the same origin, cell size, and data
         as the input raster."""
@@ -104,11 +104,10 @@ class FlowRaster(Raster):
         for i in range(8):
             rr = r + self.__neighbourIterator[i,0]
             cc = c + self.__neighbourIterator[i,1]
-            if (rr > -1 and rr < self.getRows() 
-            and cc > -1 and cc < self.getCols()):
+            if (rr > -1 and rr < self.getRows() and cc > -1 and cc < self.getCols()):
                 neighbours.append(self._data[rr,cc])
             #*** Change the above to add the FlowNode itself to neighbors,
-            #*** Rather than adding the _data of the FlowNode"
+            #*** Rather than adding the _data of the FlowNode???
                 
         return neighbours
     
@@ -118,27 +117,26 @@ class FlowRaster(Raster):
         
         for neighbour in self.getNeighbours(r,c):
             
-            if lownode == None :
-            or neighbour.getElevation() < lownode.getElevation():
+            if lownode == None or neighbour.getElevation() < lownode.getElevation():
                 lownode = neighbour
                 #*** neighbors are elevations. Do they have .getElevation()???
                 
         return lownode
 
     def setDownCells(self):
-        """ For each cell in the raster, set the downnode to the neighbor with
+        """For each cell in the raster, set the downnode to the neighbor with
         the lowest elevation, unless all neighbors are higher, in which case
         set downnode to None."""
-       for r in range(self.getRows()):
-           for c in range(self.getCols()):
-               lowestN = self.lowestNeighbour(r,c)
-               if (lowestN.getElevation() < self._data[r,c].getElevation()):
-                   #*** Again, does the _data[r,c] have an elevation, or is it
-                   #*** the elevation?
-                   self._data[r,c].setDownnode(lowestN)
-               else:
-                   self._data[r,c].setDownnode(None)
-                   #*** Should we also set pitflag to true?
+        for r in range(self.getRows()):
+            for c in range(self.getCols()):
+                lowestN = self.lowestNeighbour(r,c)
+                if (lowestN.getElevation() < self._data[r,c].getElevation()):
+                    #*** Again, does the _data[r,c] have an elevation, or is it
+                    #*** the elevation?
+                    self._data[r,c].setDownnode(lowestN)
+                else:
+                    self._data[r,c].setDownnode(None)
+                        #*** Should we also set pitflag to true?
     
     def extractValues(self, extractor):
         """Returns the values as an array of the same size."""
