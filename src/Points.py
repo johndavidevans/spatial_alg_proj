@@ -10,83 +10,86 @@ import math
 class Point2D(object):
     '''A class to represent 2-D points'''
 
-# The initialisation methods used to instantiate an instance
     def __init__(self,x,y):  
-#ensure points are always reals
+        """Standard initialisation method used to instantiate an instance."""      
+        #ensure points are always reals
         self._x=x*1.
         self._y=y*1.
-        
-#return a clone of self (another identical Point object)        
+                
     def clone(self):
+        """Returns a clone of self (another identical Point object)."""
         return Point2D(self._x,self._y)
 
-#return x coordinate    
     def get_x(self):
+        """Returns x coordinate."""
         return self._x
         
-#return y coordinate           
     def get_y(self):
+        """Returns y coordinate."""
         return self._y
         
-#return x coord if arg=0, else y coord
-    def get_coord(self,arg):
-        if arg==0:
+    def get_coord(self, arg):
+        """Returns x coord if arg is 0, else y coord."""
+
+        if arg == 0:
             return self._x
         else:
             return self._y
-            
-        
-#return x,y tupel        
+                    
     def get_xys(self):
-        return (self.x,self._y)        
+        """Returns x,y tuple."""
+        return (self.x, self._y)        
     
-    #move points by specified x-y vector
-    def move(self,x_move,y_move):
+    def move(self, x_move, y_move):
+        """Moves points by specified x-y vector."""
         self._x = self._x + x_move
         self._y = self._y + y_move
-        
-#calculate and return distance    
+            
     def distance(self, other_point):
- #     put in check to see if other point is a point
-     xd=self._x-other_point._x
-     yd=self._y-other_point._y
-     return math.sqrt((xd*xd)+(yd*yd))
+        """Returns distance between self and another point."""
+        #put in check to see if other point is a point
+        xd = self._x - other_point._x
+        yd = self._y - other_point._y
+        return math.sqrt((xd * xd) + (yd * yd))
      
      
     def bearingTo(self, other_point):
-		
-       otherX = other_point.get_x()
-       otherY = other_point.get_y()
-# All geometry is in radians 
-# we could convert to degrees if we wanted
-# math.pi is a  funtion of the math module
-       distance = self.distance(other_point)
-       sinTheta = (otherX - self._x) / distance
-       cosTheta = (otherY - self._y) / distance
+        """Returns bearings in radians to another point."""
+        otherX = other_point.get_x()
+        otherY = other_point.get_y()
 
-       aSinTheta = math.asin(sinTheta)
-
-#These conditions give an angle between 0 and 2 Pi radians
-#You should test them to make sure they are correct
-       if (sinTheta >= 0.0 and cosTheta >= 0.0):
-           theta = aSinTheta
-       elif (cosTheta < 0.0):
-           theta = math.pi - aSinTheta
-       else:
-           theta = (2.0 * math.pi + aSinTheta)
-       return theta
+        #*** All geometry is in radians 
+        # we could convert to degrees if we wanted
+        # math.pi is a  funtion of the math module
+        distance = self.distance(other_point)
+        sinTheta = (otherX - self._x) / distance
+        cosTheta = (otherY - self._y) / distance
+        aSinTheta = math.asin(sinTheta)
+        
+        #***These conditions give an angle between 0 and 2 Pi radians
+        #You should test them to make sure they are correct
+        if (sinTheta >= 0.0 and cosTheta >= 0.0):
+            theta = aSinTheta
+        elif (cosTheta < 0.0):
+            theta = math.pi - aSinTheta
+        else:
+            theta = (2.0 * math.pi + aSinTheta)
+        return theta
        
      
     def samePoint(self,point):
-        if point==self:
+        """Checks if another point is the same as self."""
+        if point == self:
              return True
 
-    def sameCoords(self,point,absolute=True,tol=1e-12):
+    def sameCoords(self, point, absolute = True, tol = 1e-12):
+        """Checks if the x and y coordinates of another point are within a
+        given tolerance."""
         if absolute:
-            return (point.get_x()==self._x and point.get_y()==self._y)
+            return (point.get_x() == self._x and point.get_y() == self._y)
         else:
-            xequiv=math.abs((self.get_x()/point.get_x())-1.)<tol
-            yequiv=math.abs((self.get_y()/point.get_y())-1.)<tol
+            xequiv = math.abs((self.get_x() / point.get_x()) - 1.) < tol
+            yequiv = math.abs((self.get_y() / point.get_y()) - 1.) < tol
             return xequiv and yequiv
             
     
@@ -97,7 +100,7 @@ class Point2D(object):
 class PointField(object):
     '''A class to represent a field (collection) of points'''
     
-    def __init__(self,PointsList=None):
+    def __init__(self, PointsList=None):
         self._allPoints = []
         if isinstance(PointsList, list):
             self._allPoints = []
@@ -119,7 +122,7 @@ class PointField(object):
         self._allPoints.append(p.clone())
 
 #method nearestPoint
-    def nearestPoint(self,p,exclude=False):
+    def nearestPoint(self, p, exclude=False):
         """A simple method to find the nearest Point to the passed Point2D
         object, p.  Exclude is a boolean we can use at some point to
         deal with what happens if p is in the point set of this object, i.e
@@ -152,8 +155,6 @@ class PointField(object):
 #else not a Point passed, return nothing       
         else:
             return None
-            
-        
 
     def sortPoints(self):
            """ A method to sort points in x using raw position sort """
@@ -182,27 +183,27 @@ class Point3D (Point2D):
         self._z = self._z + z_move
     
     def distance(self, other_point):
-        zd=self._z-other_point.get_z()
+        zd=self._z - other_point.get_z()
 #        xd=self._x-other_point.get_x()
 #        yd=self._y-other_point.get_y()
-        d2=Point2D.distance(self,other_point)
-        d3=math.sqrt((d2*d2)+(zd*zd))
+        d2 = Point2D.distance(self, other_point)
+        d3 = math.sqrt((d2 * d2) + (zd * zd))
         return d3
         
 
     
-def pointSorterOnX(p1,p2):
-    x1=p1.get_x()
-    x2=p2.get_x()
-    if (x1<x2): return -1
-    elif (x1==x2): return 0
+def pointSorterOnX(p1, p2):
+    x1 = p1.get_x()
+    x2 = p2.get_x()
+    if (x1 < x2): return -1
+    elif (x1 == x2): return 0
     else: return 1
 
-def pointSorterOnY(p1,p2):
-    y1=p1.get_y()
-    y2=p2.get_y()
-    if (y1<y2): return -1
-    elif (y1==y2): return 0
+def pointSorterOnY(p1, p2):
+    y1 = p1.get_y()
+    y2 = p2.get_y()
+    if (y1 < y2): return -1
+    elif (y1 == y2): return 0
     else: return 1
 
         
