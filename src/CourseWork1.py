@@ -26,7 +26,7 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     print ("\n\n{}".format(title))
     
     # Added to make the plot more viewable.
-    mp.figure(num=None, figsize=(30, 20), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(21, 14), dpi=80, facecolor='w', edgecolor='k')
     
     # Plot.
     mp.imshow(originalRaster._data)
@@ -59,7 +59,7 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
 def plotExtractedData(flowRaster, extractor, title=""):
     """ Plots data extracted from input FlowRaster."""
     print ("\n\n{}".format(title))
-    mp.figure(num=None, figsize=(30, 20), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(21, 14), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(flowRaster.extractValues(extractor))  
     mp.colorbar()
     mp.show()
@@ -83,6 +83,12 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     
     ################# step 1 find and plot the intial network #######
     fr = flow.FlowRaster(resampledElevations)
+    
+    # Test with DEM.txt.
+    #path = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
+    #file = r'\DEM.txt'
+    #r = readRaster((path + file))
+    #fr = flow.FlowRaster(r)
     plotFlowNetwork(elevation, fr, "Network structure - before lakes", 
                     plotLakes=False)
     
@@ -91,8 +97,8 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     
     ################# step 3 #######################################
     #handle variable rainfall
-    #fr.addRainfall(rain.getData())
-    #plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - variable rainfall")
+    fr.addRainfall(rain.getData())
+    plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - variable rainfall")
     
     ############# step 4 and step 5 #######################################
     # handle lakes

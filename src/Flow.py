@@ -19,6 +19,7 @@ class FlowNode(Point2D):
         self._upnodes = []
         self._pitflag = True
         self._value = value
+        self._rainfall = 1
         
     def setDownnode(self, newDownNode):
         """Sets a point's downnode."""
@@ -74,7 +75,10 @@ class FlowNode(Point2D):
         Calculates the flow volume passing through a particular node by recursively
         moving upstream.
         """
-        self.flow = 1
+        #if not hasattr(self, 'flow'):
+        #    self.flow = 1
+        #self.flow = 1
+        self.flow = self._rainfall
         for upnode in self.getUpnodes():
             self.flow += upnode.getFlow()
         return(self.flow)
@@ -159,6 +163,12 @@ class FlowRaster(Raster):
         valuesarray.shape = self._data.shape
         return valuesarray
     
+    def addRainfall(self, raindata):
+        """Add rainfall..."""
+        for i in range(self.getRows()):
+            for j in range(self.getCols()):
+                self._data[i,j]._rainfall = raindata[i,j]
+                    
 class FlowExtractor():
     #*** Obfuscation? Why is this its own class? Add .getValue as a method above?
     def getValue(self, node):
