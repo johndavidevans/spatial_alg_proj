@@ -170,23 +170,61 @@ class FlowRaster(Raster):
             for j in range(self.getCols()):
                 self._data[i,j]._rainfall = raindata[i,j]
     
-    def findExit(self, r, c):
-        pass
+    def joinCatchments(self, row, col, con, exc):
+        # Add current point to the exclude list.
+        exc.append(self._data[row, col])
+        
+        # Add node's neighbors to consideration and remove duplicates.
+        con = list(set(con + self.getNeighbours(row, col)))
+    
+        # Remove exclude list items from consideration.
+        con = [x for x in con if x not in exc]
+        
+        # Find lowest point under consideration.
+        lownode = None
+        for node in con:           
+            if lownode == None or node.getElevation() < lownode.getElevation():
+                lownode = node
+        
+        # Assemble list of the upnodes of excluded cells.
+        excUpnodes = []
+        for e in exc:
+            excUpnodes += e.getUpnodes()
+        
+        # Check if lownode is an upnode of any nodes in the exclude list.
+        if lownode not in excUpnodes:
+            
+            # If not, 
+            self._data[row, col].setDownnode(lownode)
+            self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
+        
+        #else:
+        #    newx = int(lownode.get_x())
+        #    newy = int(lownode.get_y())
+        #    newlownode = self.joinCatchments(newx, newy, con, exc)
+        #    self._data[row, col].setDownnode(newlownode)
+        
+        return(lownode)
+
     
     def calculateLakes(self):
         for i in range(self.getRows()):
             for j in range(self.getCols()):
                 node = self._data[i,j] 
                 if node.getPitFlag() & (i != 0) & (i != (self.getRows() - 1)) & (j != 0) & (j != (self.getCols() - 1)):
+                    consider = []
+                    exclude = []
+                    self.joinCatchments(i, j, consider, exclude)
                     #consideration = []
                     #checked = []
-                    lowestN = self.lowestNeighbour(i,j)
+                    """lowestN = self.lowestNeighbour(i,j)
                     if lowestN not in self._data[i,j].getUpnodes():
                         node._lakedepth = lowestN.getElevation() - self._data[i,j].getElevation()
                         node.setDownnode(lowestN)
                         lowestN._addUpnode(node)
                     else:
                         pass
+                    """
                     
                     
 class FlowExtractor():

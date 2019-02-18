@@ -70,3 +70,52 @@ for i in range(5):
     for j in range(5):
         print(exfr._data[i,j].getPitFlag())
 
+
+
+
+def findExit(flowraster, row, col, con, exc):
+    
+    # Add current point to the exclude list.
+    exc.append(flowraster._data[row, col])
+    
+    # Add node's neighbors to consideration and remove duplicates.
+    con = list(set(con + flowraster.getNeighbours(row, col)))
+    
+    # Remove exclude list items from consideration.
+    con = [x for x in con if x not in exc]
+    
+    # Find lowest point under consideration.
+    lownode = None
+    for node in con:           
+        if lownode == None or node.getElevation() < lownode.getElevation():
+            lownode = node
+    
+    # Assemble list of the upnodes of excluded cells.
+    excUpnodes = []
+    for e in exc:
+        excUpnodes += e.getUpnodes()
+    
+    # Check if lownode is an upnode of any nodes in the exclude list.
+    if lownode not in excUpnodes:
+        flowraster._data[row, col].setDownnode(lownode)
+        flowraster._data[row, col]._lakedepth = (lownode.getElevation() - flowraster._data[row, col].getElevation())
+    
+    else:
+        findExit(flowraster, int(lownode.get_x), int(lownode.get_y), con, exc)
+    
+    return(lownode)
+
+
+
+consider = []
+exclude = []
+
+exfr = flow.FlowRaster(elevationRasterA)       
+l = findExit(exfr, 0, 1, consider, exclude)
+
+exclUpnodes = []
+for i in e:
+    exclUpnodes += i.getUpnodes()
+
+for i in exclUpnodes:
+    print(i.getElevation())

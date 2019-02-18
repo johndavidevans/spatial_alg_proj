@@ -43,9 +43,11 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     for i in range(flowRaster.getRows()):   
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
+
+            ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
+                           ha="center", va="center", color="k") # Diagnostic
             
-            # Plot pits, associated streams, and if specified and populated, lakes.
-            
+            # Plot pits, associated streams, and if specified and populated, lakes.            
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(), node.get_y(), color="red")
                 if counter == 0: # tempt for finding locations
@@ -55,9 +57,11 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
                 plotstreams(node, colours[colouri % len(colours)])
             if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
                 mp.scatter(node.get_x(), node.get_y(), color="blue", s=200)
+                
+                ax.text(j, i, '%.1f'%node.getLakeDepth(),  # Diagnostic
+                           ha="center", va="center", color="orange") # Diagnostic
             
-            text = ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
-                           ha="center", va="center", color="k") # Diagnostic
+            
 
     mp.show(fig)
 
