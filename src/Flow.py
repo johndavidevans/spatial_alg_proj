@@ -20,6 +20,7 @@ class FlowNode(Point2D):
         self._pitflag = True
         self._value = value
         self._rainfall = 1
+        self._lakedepth = 0
         
     def setDownnode(self, newDownNode):
         """Sets a point's downnode."""
@@ -27,7 +28,7 @@ class FlowNode(Point2D):
         # Changes _pitflag to False if newDownNode is supplied.
         self._pitflag = (newDownNode == None)
         
-        # If there is already a downnode, remove from upnodes.
+        # If there is already a downnode, remove self from upnodes.
         if (self._downnode != None): # change previous
             self._downnode._removedUpnode(self)
         
@@ -72,17 +73,19 @@ class FlowNode(Point2D):
     
     def getFlow(self):
         """
-        Calculates the flow volume passing through a particular node by recursively
-        moving upstream.
+        Calculates the flow volume passing through a particular node by 
+        recursively moving upstream.
         """
-        #if not hasattr(self, 'flow'):
-        #    self.flow = 1
-        #self.flow = 1
         self.flow = self._rainfall
         for upnode in self.getUpnodes():
             self.flow += upnode.getFlow()
         return(self.flow)
-    
+        
+    def getLakeDepth(self):
+        """Calculates the depth of lakes."""
+        return self._lakedepth
+        
+        
 class FlowRaster(Raster):
     """"""    
     def __init__(self, araster):
@@ -113,15 +116,13 @@ class FlowRaster(Raster):
         self.setDownCells()
                     
     def getNeighbours(self, r, c):
-        """ Returns a list of the elevations of a node's eight neighbors."""
+        """ Returns a list containing a node's neighbors."""
         neighbours = []
         for i in range(8):
             rr = r + self.__neighbourIterator[i,0]
             cc = c + self.__neighbourIterator[i,1]
             if (rr > -1 and rr < self.getRows() and cc > -1 and cc < self.getCols()):
                 neighbours.append(self._data[rr,cc])
-            #*** Change the above to add the FlowNode itself to neighbors,
-            #*** Rather than adding the _data of the FlowNode???
                 
         return neighbours
     
@@ -168,9 +169,32 @@ class FlowRaster(Raster):
         for i in range(self.getRows()):
             for j in range(self.getCols()):
                 self._data[i,j]._rainfall = raindata[i,j]
+    
+    def findExit(self, r, c):
+        pass
+    
+    def calculateLakes(self):
+        for i in range(self.getRows()):
+            for j in range(self.getCols()):
+                node = self._data[i,j] 
+                if node.getPitFlag() & (i != 0) & (i != (self.getRows() - 1)) & (j != 0) & (j != (self.getCols() - 1)):
+                    #consideration = []
+                    #checked = []
+                    lowestN = self.lowestNeighbour(i,j)
+                    if lowestN not in self._data[i,j].getUpnodes():
+                        node._lakedepth = lowestN.getElevation() - self._data[i,j].getElevation()
+                        node.setDownnode(lowestN)
+                        lowestN._addUpnode(node)
+                    else:
+                        pass
+                    
                     
 class FlowExtractor():
     #*** Obfuscation? Why is this its own class? Add .getValue as a method above?
     def getValue(self, node):
         """Returns the results of FlowNode.getFlow()"""
         return node.getFlow()
+
+class LakeDepthExtractor():
+    def getValue(self, node):
+        return node.getLakeDepth()

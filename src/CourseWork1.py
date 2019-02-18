@@ -1,5 +1,5 @@
 from RasterHandler import createRanRasterSlope
-from RasterHandler import readRaster
+#from RasterHandler import readRaster
 import matplotlib.pyplot as mp
 import Flow as flow
 
@@ -26,9 +26,11 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     print ("\n\n{}".format(title))
     
     # Added to make the plot more viewable.
-    mp.figure(num=None, figsize=(21, 14), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
     
     # Plot.
+    fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
+    
     mp.imshow(originalRaster._data)
     mp.colorbar()
     
@@ -52,14 +54,17 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
                 colouri += 1
                 plotstreams(node, colours[colouri % len(colours)])
             if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
-                mp.scatter(node.get_x(), node.get_y(), color="blue")
+                mp.scatter(node.get_x(), node.get_y(), color="blue", s=200)
+            
+            text = ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
+                           ha="center", va="center", color="k") # Diagnostic
 
-    mp.show()
+    mp.show(fig)
 
 def plotExtractedData(flowRaster, extractor, title=""):
     """ Plots data extracted from input FlowRaster."""
     print ("\n\n{}".format(title))
-    mp.figure(num=None, figsize=(21, 14), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(flowRaster.extractValues(extractor))  
     mp.colorbar()
     mp.show()
@@ -89,6 +94,7 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     #file = r'\DEM.txt'
     #r = readRaster((path + file))
     #fr = flow.FlowRaster(r)
+    
     plotFlowNetwork(elevation, fr, "Network structure - before lakes", 
                     plotLakes=False)
     
@@ -102,9 +108,9 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     
     ############# step 4 and step 5 #######################################
     # handle lakes
-    #fr.calculateLakes()
-    #plotFlowNetwork(elevation, fr, "Network structure (i.e. watersheds) - with lakes")
-    #plotExtractedData(fr, flow.LakeDepthExtractor(), "Lake depth")
+    fr.calculateLakes()
+    plotFlowNetwork(elevation, fr, "Network structure (i.e. watersheds) - with lakes")
+    plotExtractedData(fr, flow.LakeDepthExtractor(), "Lake depth")
     #plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - variable rainfall")
 
 
