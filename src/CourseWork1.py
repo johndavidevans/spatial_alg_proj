@@ -1,5 +1,5 @@
 from RasterHandler import createRanRasterSlope
-#from RasterHandler import readRaster
+from RasterHandler import readRaster
 import matplotlib.pyplot as mp
 import Flow as flow
 
@@ -60,8 +60,6 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
                 
                 ax.text(j, i, '%.1f'%node.getLakeDepth(),  # Diagnostic
                            ha="center", va="center", color="orange") # Diagnostic
-            
-            
 
     mp.show(fig)
 
@@ -92,15 +90,8 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     
     ################# step 1 find and plot the intial network #######
     fr = flow.FlowRaster(resampledElevations)
-    
-    # Test with DEM.txt.
-    #path = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
-    #file = r'\DEM.txt'
-    #r = readRaster((path + file))
-    #fr = flow.FlowRaster(r)
-    
-    plotFlowNetwork(elevation, fr, "Network structure - before lakes", 
-                    plotLakes=False)
+        
+    plotFlowNetwork(elevation, fr, "Network structure - before lakes", plotLakes=False)
     
     ################Step 2 ######################################
     plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - constant rain")
@@ -115,12 +106,13 @@ def calculateFlowsAndPlot(elevation, rain, resampleF):
     fr.calculateLakes()
     plotFlowNetwork(elevation, fr, "Network structure (i.e. watersheds) - with lakes")
     plotExtractedData(fr, flow.LakeDepthExtractor(), "Lake depth")
-    #plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - variable rainfall")
+    plotExtractedData(fr, flow.FlowExtractor(), "River flow rates - variable rainfall")
 
 
 ############# step 1 to 4 #######################################
 # Create Random Raster
-
+import numpy as np 
+np.random.seed(1)
 # Random raster parameters.
 rows = 40
 cols = 60
@@ -150,6 +142,12 @@ rainrasterA = createRanRasterSlope(rows // resampleFactorA,
 calculateFlowsAndPlot(elevationRasterA, rainrasterA, resampleFactorA)
     
 ############# step 5 #######################################
+# Test with DEM.txt.
+path = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
+demfile = r'\DEM.txt'
+rainfile = r'\Rainfall.txt'
+
+calculateFlowsAndPlot(readRaster(path + demfile), readRaster(path + rainfile), 10)
 #calculateFlowsAndPlot(readRaster('ascifiles/dem_hack.txt'), readRaster('ascifiles/rain_small_hack.txt'), 10)
 
 

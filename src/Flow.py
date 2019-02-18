@@ -170,7 +170,7 @@ class FlowRaster(Raster):
             for j in range(self.getCols()):
                 self._data[i,j]._rainfall = raindata[i,j]
     
-    def joinCatchments(self, row, col, con, exc, counter):
+    def joinCatchments(self, row, col, con, exc, ind):
         """"""
         # Add current point to the exclude list.
         exc.append(self._data[row, col])
@@ -183,9 +183,16 @@ class FlowRaster(Raster):
         
         # Find lowest point under consideration.
         lownode = None
-        for node in con:           
+        for node in con:
             if lownode == None or node.getElevation() < lownode.getElevation():
                 lownode = node
+        
+        # Get indices of lownode.
+        lowx = int(lownode.get_x())
+        lowy = int(lownode.get_y())
+        
+        # Add indices of lownode to externalstorage. 
+        #ind.append((lowx, lowy))
         
         # Assemble list of the upnodes of excluded cells.
         excUpnodes = []
@@ -193,21 +200,14 @@ class FlowRaster(Raster):
             excUpnodes += e.getUpnodes()
         
         # If lownode IS NOT an upnode of any nodes in the exclude list.
-        if lownode not in excUpnodes: 
+        if lownode not in excUpnodes:
             self._data[row, col].setDownnode(lownode)
-            #self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
         
         # If lownode IS an upnode of any nodes in the exculde list
-        elif counter < 44:
-            counter += 1
-            # Get indices of current lownode.
-            newx = int(lownode.get_x())
-            newy = int(lownode.get_y())
-            
-            lownode = self.joinCatchments(newy, newx, con, exc, counter)
+        else:
+            lownode = self.joinCatchments(lowy, lowx, con, exc, ind)
             self._data[row, col].setDownnode(lownode)
         
-            #self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
         return(lownode)
 
     
@@ -218,18 +218,10 @@ class FlowRaster(Raster):
                 if node.getPitFlag() & (i != 0) & (i != (self.getRows() - 1)) & (j != 0) & (j != (self.getCols() - 1)):
                     consider = []
                     exclude = []
-                    counter = 0
-                    lownode = self.joinCatchments(i, j, consider, exclude, counter)
+                    lowindex = []
+                    lownode = self.joinCatchments(i, j, consider, exclude, lowindex)
                     self._data[i, j]._lakedepth = (lownode.getElevation() - self._data[i, j].getElevation())
-                    """lowestN = self.lowestNeighbour(i,j)
-                    if lowestN not in self._data[i,j].getUpnodes():
-                        node._lakedepth = lowestN.getElevation() - self._data[i,j].getElevation()
-                        node.setDownnode(lowestN)
-                        lowestN._addUpnode(node)
-                    else:
-                        pass
-                    """
-                    
+                           
                     
 class FlowExtractor():
     #*** Obfuscation? Why is this its own class? Add .getValue as a method above?

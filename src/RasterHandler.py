@@ -17,7 +17,7 @@ def readRaster(fileName):
     end_header = False
     xll = 0.
     yll = 0.
-    nodata =- 999.999
+    nodata =-999.999
     cellsize = 1.0
     
     while (not end_header):
@@ -73,6 +73,7 @@ def readRaster(fileName):
     ##***end commented these out to test redundancy
 
     data = np.array(datarows)
+    #data = np.vstack([data[0,:], data]) # Temp to recover lost data.
     
     # Returns a raster.
     return Raster(data, xll, yll, cellsize, nodata)
@@ -83,63 +84,64 @@ def readRaster(fileName):
 # modify cell size
 def createRanRaster(rows=20, cols=30, cellsize=2, xorg=0, yorg=0,
                     nodata=-999.999, levels=5, datahi=100., datalo=0.):
- 
-   #print (rows,cols,levels)
+    np.random.seed(1) # For consistency while testing.
+    
+    
+    
+    #print (rows,cols,levels)
+    #levels = min(levels, rows)
    
-   #levels = min(levels, rows)
+    # Set data sizes
+    levels = min(levels, cols)
+    data = np.zeros([levels, rows, cols])  
+    dataout = np.zeros([rows, cols]) 
    
-   # Set data sizes
-   levels = min(levels, cols)
-   data = np.zeros([levels, rows, cols])  
-   dataout = np.zeros([rows, cols]) 
-   
-   # Assign uniformly distributed random data.
-   for x in np.nditer(data, op_flags=['readwrite']):
-       x[...] = random.uniform(datalo, datahi) 
-   #print data
-   #np.nditer()
-
-   #*** Begin random magic. Explore as time permits.
-   for i in range(levels):
-       lin = ((i) * 2) + 1
-       lin2 = lin * lin
-       
-       #print (lin,lin2)
-       iterator = np.zeros([lin2,2], dtype=int)
-       for itx in range(lin):
-           for ity in range(lin):
-               iterator[itx * lin + ity, 0] = (itx - i)
-               iterator[itx * lin + ity, 1] = (ity - i)
-       #print iterator
-       
-       part = data[i]
-       
-       
-       new = np.zeros([rows,cols])
-       for j in range(rows):
-           for k in range(cols):
-                for it in range(lin2):
-                        r = (j + iterator[it, 0]) % rows
-                        c = (k + iterator[it, 1]) % cols
-                        #print (i,j,k,r,c)
-                        new[j,k] = new[j,k] + part[r,c]
+    # Assign uniformly distributed random data.
+    for x in np.nditer(data, op_flags=['readwrite']):
+        x[...] = random.uniform(datalo, datahi) 
+        #print data
+        #np.nditer()
         
-       minval = np.min(new)
-       maxval = np.max(new)
-       ran = maxval - minval
-       data[i] = ((new - minval) / ran) * (2 ** i)
-       #print data[i]
+    #*** Begin random magic. Explore as time permits.
+    for i in range(levels):
+        lin = ((i) * 2) + 1
+        lin2 = lin * lin
        
-       dataout = dataout + data[i]
+        #print (lin,lin2)
+        iterator = np.zeros([lin2,2], dtype=int)
+        for itx in range(lin):
+            for ity in range(lin):
+                iterator[itx * lin + ity, 0] = (itx - i)
+                iterator[itx * lin + ity, 1] = (ity - i)
+        #print iterator
        
-   minval = np.min(dataout)
-   maxval = np.max(dataout)
-   ran = maxval - minval
-   datarange = datahi - datalo
-   dataout = (((dataout - minval) / ran) * (datarange)) + datalo
-   #*** End random magic. Explore as time permits.
+        part = data[i]
+       
+       
+        new = np.zeros([rows,cols])
+        for j in range(rows):
+            for k in range(cols):
+                 for it in range(lin2):
+                     r = (j + iterator[it, 0]) % rows
+                     c = (k + iterator[it, 1]) % cols
+                     #print (i,j,k,r,c)
+                     new[j,k] = new[j,k] + part[r,c]
+        minval = np.min(new)
+        maxval = np.max(new)
+        ran = maxval - minval
+        data[i] = ((new - minval) / ran) * (2 ** i)
+        #print data[i]
+       
+        dataout = dataout + data[i]
+       
+    minval = np.min(dataout)
+    maxval = np.max(dataout)
+    ran = maxval - minval
+    datarange = datahi - datalo
+    dataout = (((dataout - minval) / ran) * (datarange)) + datalo
+    #*** End random magic. Explore as time permits.
    
-   return Raster(dataout, xorg, yorg, cellsize, nodata)
+    return Raster(dataout, xorg, yorg, cellsize, nodata)
 
 
    
@@ -147,10 +149,7 @@ def createRanRaster(rows=20, cols=30, cellsize=2, xorg=0, yorg=0,
 def createRanRasterSlope(rows=20, cols=30, cellsize=10, xorg=0, yorg=0,
                          nodata=-999.999, levels=5, datahi=100., datalo=0.,
                          focusx=None, focusy=None, ranpart=0.5):
-
-    np.random.seed(1) # For consistency while testing.
-    
-    
+ 
     
     # Set default focal function values.
     if (focusx == None):

@@ -119,3 +119,81 @@ for i in e:
 
 for i in exclUpnodes:
     print(i.getElevation())
+
+
+
+def rrr(fileName):
+    """ Generates a raster object from a ARC-INFO ascii format file."""
+    
+    myFile = open(fileName, 'r')
+        
+    end_header = False
+    xll = 0.
+    yll = 0.
+    nodata =-999.999
+    cellsize = 1.0
+    
+    while (not end_header):
+        # Search through lines for raster keywords and their values.
+        line = myFile.readline()      
+        items = line.split()
+        keyword = items[0].lower()
+        value = items[1]
+        if (keyword == 'ncols'):
+            ncols = int(value)
+        elif (keyword == 'nrows'):
+            nrows = int(value)
+        elif (keyword == 'xllcorner'):
+            xll = float(value)
+        elif (keyword == 'yllcorner'):
+            yll = float(value)  
+        elif (keyword == 'nodata_value'):
+            nodata = float(value)
+        elif (keyword == 'cellsize'):
+            cellsize = float(value)  
+        else:
+            end_header = True
+    
+    # If no rows or no columns, not a valid raster.
+    if (nrows == None or ncols == None):
+        print ("Row or Column size not specified for Raster file read")
+        return None
+
+    datarows = []
+    for line in myFile.readlines():
+        row = [float(x) for x in line.split()]
+
+        datarows.append(row)
+    data = np.array(datarows)
+    data = np.vstack([data[0,:], data])
+    
+    #return(datarows)
+    return Raster(data, xll, yll, cellsize, nodata)
+
+path = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
+demfile = r'\DEM.txt'
+rainfile = r'\Rainfall.txt'
+
+r = rrr((path + demfile))
+r._data.shape
+
+
+factor = 10
+newRowNum = r.getRows() // factor
+newColNum = r.getCols() // factor
+newData = np.zeros([newRowNum, newColNum])
+
+for i in range(newRowNum):
+   for j in range(newColNum):
+       sumCellValue = 0.0
+
+       for k in range(factor):
+           for l in range(factor):
+               sumCellValue += r._data[i * factor + k, j * factor + l]
+       newData[i,j] = sumCellValue / factor**2
+
+r2 = Raster(newData, r._orgs[0], r._orgs[1], r._cellsize * factor)
+mp.imshow(r2.getData())
+
+mp.imshow(r.getData())
+r.getData().shape
