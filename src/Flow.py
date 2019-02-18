@@ -170,7 +170,8 @@ class FlowRaster(Raster):
             for j in range(self.getCols()):
                 self._data[i,j]._rainfall = raindata[i,j]
     
-    def joinCatchments(self, row, col, con, exc):
+    def joinCatchments(self, row, col, con, exc, counter):
+        """"""
         # Add current point to the exclude list.
         exc.append(self._data[row, col])
         
@@ -191,19 +192,22 @@ class FlowRaster(Raster):
         for e in exc:
             excUpnodes += e.getUpnodes()
         
-        # Check if lownode is an upnode of any nodes in the exclude list.
-        if lownode not in excUpnodes:
-            
-            # If not, 
+        # If lownode IS NOT an upnode of any nodes in the exclude list.
+        if lownode not in excUpnodes: 
             self._data[row, col].setDownnode(lownode)
-            self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
+            #self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
         
-        #else:
-        #    newx = int(lownode.get_x())
-        #    newy = int(lownode.get_y())
-        #    newlownode = self.joinCatchments(newx, newy, con, exc)
-        #    self._data[row, col].setDownnode(newlownode)
+        # If lownode IS an upnode of any nodes in the exculde list
+        elif counter < 44:
+            counter += 1
+            # Get indices of current lownode.
+            newx = int(lownode.get_x())
+            newy = int(lownode.get_y())
+            
+            lownode = self.joinCatchments(newy, newx, con, exc, counter)
+            self._data[row, col].setDownnode(lownode)
         
+            #self._data[row, col]._lakedepth = (lownode.getElevation() - self._data[row, col].getElevation())
         return(lownode)
 
     
@@ -214,9 +218,9 @@ class FlowRaster(Raster):
                 if node.getPitFlag() & (i != 0) & (i != (self.getRows() - 1)) & (j != 0) & (j != (self.getCols() - 1)):
                     consider = []
                     exclude = []
-                    self.joinCatchments(i, j, consider, exclude)
-                    #consideration = []
-                    #checked = []
+                    counter = 0
+                    lownode = self.joinCatchments(i, j, consider, exclude, counter)
+                    self._data[i, j]._lakedepth = (lownode.getElevation() - self._data[i, j].getElevation())
                     """lowestN = self.lowestNeighbour(i,j)
                     if lowestN not in self._data[i,j].getUpnodes():
                         node._lakedepth = lowestN.getElevation() - self._data[i,j].getElevation()
