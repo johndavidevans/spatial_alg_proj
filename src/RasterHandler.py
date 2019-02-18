@@ -147,6 +147,10 @@ def createRanRaster(rows=20, cols=30, cellsize=2, xorg=0, yorg=0,
 def createRanRasterSlope(rows=20, cols=30, cellsize=10, xorg=0, yorg=0,
                          nodata=-999.999, levels=5, datahi=100., datalo=0.,
                          focusx=None, focusy=None, ranpart=0.5):
+
+    np.random.seed(1) # For consistency while testing.
+    
+    
     
     # Set default focal function values.
     if (focusx == None):
