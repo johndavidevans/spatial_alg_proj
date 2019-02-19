@@ -104,12 +104,6 @@ class FlowRaster(Raster):
                 x = (j) * self.getCellsize() + self.getOrgs()[1]
                 nodes.append(FlowNode(x, y, data[i,j]))
                 
-                #Added to keep cellsize aligned
-                #node = FlowNode(x, y, data[i,j])
-                #node._x = node._x / araster.getCellsize()
-                #node._y = node._y / araster.getCellsize()
-                #nodes.append(node)
-        
         # Convert to array and reshape to match input raster.
         nodearray = np.array(nodes)
         nodearray.shape = data.shape
@@ -194,8 +188,8 @@ class FlowRaster(Raster):
                 lownode = node
         
         # Get indices of lownode.
-        lowx = int(lownode.get_x())
-        lowy = int(lownode.get_y())
+        lowx = int(lownode.get_x() / self.getCellsize())
+        lowy = int(lownode.get_y() / self.getCellsize())
         
         # Add indices of lownode to externalstorage. 
         #ind.append((lowx, lowy))
@@ -233,6 +227,7 @@ class FlowRaster(Raster):
 
     
     def calculateLakes(self):
+        """ Calculates lake depths and """
         for i in range(self.getRows()):
             for j in range(self.getCols()):
                 node = self._data[i,j] 

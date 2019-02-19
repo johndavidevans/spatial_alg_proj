@@ -64,8 +64,7 @@ class Raster(object):
                            sumCellValue += self._data[i * factor + k, j * factor + l]
                    
                    newData[i,j] = sumCellValue / factor ** 2
-                   #newData[i,j]._x = newData[i,j]._x / factor
-                   #newData[i,j]._y = newData[i,j]._y / factor
+
                     
        return Raster(newData, self._orgs[0], self._orgs[1], factor)#self._cellsize * factor)
            
