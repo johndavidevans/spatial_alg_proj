@@ -197,3 +197,40 @@ mp.imshow(r2.getData())
 
 mp.imshow(r.getData())
 r.getData().shape
+
+
+
+path2 = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
+file2 = r'\DEMnohead2.txt'
+
+
+myFile = open((path2 + file2), 'r')
+datalines = []
+for line in myFile.readlines():
+    row = [float(x) for x in line.split()]
+    datalines.append(row)
+    
+data = np.array(datalines)
+
+
+elev = readRaster(path + demfile)
+rain = readRaster(path + rainfile)
+
+resampElev = elev.createWithIncreasedCellsize(10)
+#mp.imshow(resampElev.getData())
+
+fr = flow.FlowRaster(resampElev)
+plotFlowNetwork(elev, fr)
+
+fr.calculateLakes()
+
+#mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
+#mp.imshow(rain.getData())
+
+
+for i in range(fr.getRows()):
+    for j in range(fr.getCols()):
+        fr.getData()[i,j]._x = fr.getData()[i,j]._x / 10
+        fr.getData()[i,j]._y = fr.getData()[i,j]._y / 10
+
+

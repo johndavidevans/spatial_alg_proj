@@ -29,7 +29,7 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
     
     # Plot.
-    fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
+    ###fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
     
     mp.imshow(originalRaster._data)
     mp.colorbar()
@@ -38,30 +38,30 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     colouri=-1
     colours=["black","red","magenta","yellow","green","cyan","white","orange","grey","brown"]
     
-    counter = 0 # tempt for finding locations
+    ###counter = 0 # tempt for finding locations
     # Iterate over all cells.
     for i in range(flowRaster.getRows()):   
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
 
-            ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
-                           ha="center", va="center", color="k") # Diagnostic
+            ###ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
+            ###               ha="center", va="center", color="k") # Diagnostic
             
             # Plot pits, associated streams, and if specified and populated, lakes.            
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(), node.get_y(), color="red")
-                if counter == 0: # tempt for finding locations
-                    mp.scatter(node.get_x(), node.get_y(), color = "orange", s = 200) # tempt for finding locations
-                    counter += 1 # tempt for finding locations
+                ###if counter == 0: # tempt for finding locations
+                ###    mp.scatter(node.get_x(), node.get_y(), color = "orange", s = 200) # tempt for finding locations
+                ###    counter += 1 # tempt for finding locations
                 colouri += 1
                 plotstreams(node, colours[colouri % len(colours)])
             if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
-                mp.scatter(node.get_x(), node.get_y(), color="blue", s=200)
+                mp.scatter(node.get_x(), node.get_y(), color="blue")
                 
-                ax.text(j, i, '%.1f'%node.getLakeDepth(),  # Diagnostic
-                           ha="center", va="center", color="orange") # Diagnostic
+                ###ax.text(j, i, '%.1f'%node.getLakeDepth(),  # Diagnostic
+                ###           ha="center", va="center", color="orange") # Diagnostic
 
-    mp.show(fig)
+    mp.show()
 
 def plotExtractedData(flowRaster, extractor, title=""):
     """ Plots data extracted from input FlowRaster."""

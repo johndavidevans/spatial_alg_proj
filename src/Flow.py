@@ -103,6 +103,12 @@ class FlowRaster(Raster):
                 y = (i) * self.getCellsize() + self.getOrgs()[0]
                 x = (j) * self.getCellsize() + self.getOrgs()[1]
                 nodes.append(FlowNode(x, y, data[i,j]))
+                
+                #Added to keep cellsize aligned
+                #node = FlowNode(x, y, data[i,j])
+                #node._x = node._x / araster.getCellsize()
+                #node._y = node._y / araster.getCellsize()
+                #nodes.append(node)
         
         # Convert to array and reshape to match input raster.
         nodearray = np.array(nodes)
@@ -202,11 +208,26 @@ class FlowRaster(Raster):
         # If lownode IS NOT an upnode of any nodes in the exclude list.
         if lownode not in excUpnodes:
             self._data[row, col].setDownnode(lownode)
-        
-        # If lownode IS an upnode of any nodes in the exculde list
+            #exc[-1].setDownnode(lownode)
+            
+
+            
+            #minoverlap.setDownnode(lownode)                  
+            #    if overlap[i].getElevation() < minoverlap.getElevation():
+            #        minoverlap = overlap[i]
+            #minoverlap.setDownnode(lownode)
+        # If lownode IS an upnode of any nodes in the exclude list
         else:
             lownode = self.joinCatchments(lowy, lowx, con, exc, ind)
+            
             self._data[row, col].setDownnode(lownode)
+                    # Overlap:
+        #overlap = [x for x in self.getNeighbours(lowy, lowx) if x in exc]
+        #minoverlap = overlap[0]
+        #for i in range(1, len(overlap)):
+        #    if np.sqrt((lownode.get_x() - minoverlap.get_x())**2 + (lownode.get_y() - minoverlap.get_y())**2) > np.sqrt((lownode.get_x() - overlap[i].get_x())**2 + (lownode.get_y() - overlap[i].get_y())**2):
+        #        minoverlap = overlap[i]
+        #minoverlap.setDownnode(lownode)
         
         return(lownode)
 
