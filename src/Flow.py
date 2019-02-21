@@ -74,7 +74,7 @@ class FlowNode(Point2D):
     def getFlow(self):
         """
         Calculates the flow volume passing through a particular node by 
-        recursively moving upstream.
+        recursively moving upstream. Added as a part of Task 2.
         """
         self.flow = self._rainfall
         for upnode in self.getUpnodes():
@@ -87,7 +87,10 @@ class FlowNode(Point2D):
         
         
 class FlowRaster(Raster):
-    """"""    
+    """
+    A raster whose data is an array of FlowNodes associated with each cell of 
+    the original input raster.
+    """    
     def __init__(self, araster):
         """Initializes FlowRaster with the same origin, cell size, and data
         as the input raster."""
@@ -146,12 +149,10 @@ class FlowRaster(Raster):
             for c in range(self.getCols()):
                 lowestN = self.lowestNeighbour(r,c)
                 if (lowestN.getElevation() < self._data[r,c].getElevation()):
-                    #*** Again, does the _data[r,c] have an elevation, or is it
-                    #*** the elevation?
                     self._data[r,c].setDownnode(lowestN)
                 else:
                     self._data[r,c].setDownnode(None)
-                        #*** Should we also set pitflag to true?
+
     
     def extractValues(self, extractor):
         """Returns the values as an array of the same size."""
@@ -170,10 +171,12 @@ class FlowRaster(Raster):
             for j in range(self.getCols()):
                 self._data[i,j]._rainfall = raindata[i,j]
     
-    def joinCatchments(self, row, col, con, exc, ind):
+    def joinCatchments(self, row, col, con, exc):
         """"""
+        # Define current node
+        curnode = self._data[row, col]
         # Add current point to the exclude list.
-        exc.append(self._data[row, col])
+        exc.append(curnode)
         
         # Add node's neighbors to consideration and remove duplicates.
         con = list(set(con + self.getNeighbours(row, col)))
@@ -191,53 +194,89 @@ class FlowRaster(Raster):
         lowx = int(lownode.get_x() / self.getCellsize())
         lowy = int(lownode.get_y() / self.getCellsize())
         
-        # Add indices of lownode to externalstorage. 
-        #ind.append((lowx, lowy))
-        
         # Assemble list of the upnodes of excluded cells.
         excUpnodes = []
         for e in exc:
             excUpnodes += e.getUpnodes()
         
-        # If lownode IS NOT an upnode of any nodes in the exclude list.
-        if lownode not in excUpnodes:
-            self._data[row, col].setDownnode(lownode)
-            #exc[-1].setDownnode(lownode)
+        # If lownode is an upnode of any nodes in the exclude list, recurse.
+        if lownode in excUpnodes:
+            lownode = self.joinCatchments(lowy, lowx, con, exc)
             
-
-            
-            #minoverlap.setDownnode(lownode)                  
-            #    if overlap[i].getElevation() < minoverlap.getElevation():
-            #        minoverlap = overlap[i]
-            #minoverlap.setDownnode(lownode)
-        # If lownode IS an upnode of any nodes in the exclude list
-        else:
-            lownode = self.joinCatchments(lowy, lowx, con, exc, ind)
-            
-            self._data[row, col].setDownnode(lownode)
-                    # Overlap:
-        #overlap = [x for x in self.getNeighbours(lowy, lowx) if x in exc]
-        #minoverlap = overlap[0]
-        #for i in range(1, len(overlap)):
-        #    if np.sqrt((lownode.get_x() - minoverlap.get_x())**2 + (lownode.get_y() - minoverlap.get_y())**2) > np.sqrt((lownode.get_x() - overlap[i].get_x())**2 + (lownode.get_y() - overlap[i].get_y())**2):
-        #        minoverlap = overlap[i]
-        #minoverlap.setDownnode(lownode)
+        curnode.setDownnode(lownode)
         
+        if lownode.getElevation() > curnode.getElevation():
+            curnode._lakedepth = lownode.getElevation() - curnode.getElevation()
         return(lownode)
 
+    def traceBack(self, area, pit, tracenode):
+        
+        # Get coords of current tracenode.
+        cs = self.getCellsize()
+        tnx = int(tracenode.get_x() / cs)
+        tny = int(tracenode.get_y() / cs)
+        
+        # List neighbors of current traceback node that are in the area of consideration.
+        lowneighbours = [x for x in self.getNeighbours(tnx, tny) if x in area]
+        
+        # If the original pit is among them, set traceback as downnode. We're done.
+        if pit in lowneighbours:
+            pit.setDownnode(tracenode)
+        
+        #If not, set the traceback as a downnode of the lowest neighbour.
+        
+        elif len([x.getElevation() for x in lowneighbours]) > 0:
+            # Find the lowNeighbour with the lowest elevation.
+            # COULD USE ABOVE METHODS
+            
+            elevs = [x.getElevation() for x in lowneighbours]
+            if len(elevs) > 0:
+                #newtraceindex = np.argmin([0,elevs])  
+                newtraceindex = elevs.index(min(elevs))
+                newtrace = lowneighbours[newtraceindex]
+                
+                # Set low as downnode of newlow.
+                newtrace.setDownnode(tracenode)
+                 
+                FlowRaster.traceBack(self, area, pit, newtrace)
+                
+            
+                return newtrace
+        
     
     def calculateLakes(self):
         """ Calculates lake depths and """
         for i in range(self.getRows()):
             for j in range(self.getCols()):
-                node = self._data[i,j] 
+                node = self._data[i,j]
+                
+                # Only pits not along the border of the elevation.
                 if node.getPitFlag() & (i != 0) & (i != (self.getRows() - 1)) & (j != 0) & (j != (self.getCols() - 1)):
+                    pit = self._data[i,j]
                     consider = []
                     exclude = []
-                    lowindex = []
-                    lownode = self.joinCatchments(i, j, consider, exclude, lowindex)
-                    self._data[i, j]._lakedepth = (lownode.getElevation() - self._data[i, j].getElevation())
-                           
+                    
+                    # Find spillover node and use to calculate lakedepth.
+                    lownode = self.joinCatchments(i, j, consider, exclude)
+                    #pit._lakedepth = (lownode.getElevation() - pit.getElevation())
+                    
+                    # Fix where Cellsize adjustment takes place!
+                    
+                    # NEW ATTEMPT
+                    # Adjust upnode/downnode relationships to reflect flow from pit to spillover point.
+                    
+                    # Get xs and ys from excluded list so bounding box can be set.
+                    #cs = self.getCellsize()
+                    #xs = [int(n.get_x() / cs) for n in exclude]
+                    #ys = [int(n.get_y() / cs) for n in exclude]
+
+                    # Area bounded by exclude (of which pit is the first member).
+                    
+                    #traceArea = self.getData()[min(xs):max(xs) + 1, min(ys):max(ys) + 1]
+                    
+                    # Recursive traceback.
+                    #FlowRaster.traceBack(self, traceArea, pit, lownode)
+
                     
 class FlowExtractor():
     #*** Obfuscation? Why is this its own class? Add .getValue as a method above?
@@ -248,3 +287,38 @@ class FlowExtractor():
 class LakeDepthExtractor():
     def getValue(self, node):
         return node.getLakeDepth()
+    
+    
+                        # New idea
+                    # Create a bounding box of coordinates using lownode and pitnode
+                    # starting at the lownode, find the box neighbor with the next lowest elevation
+                    # set self as downnode of that neighbor
+                    # new lownode = the neighbor just joined to
+                    # recurse until the neighbor is the pitnode
+                    
+                    # Alternatively "Add a method to trace all upnodes"
+                    
+                    # Find neighbors of lownode
+                    # Find which of these is in exclude
+                    # Find which is the closest to lownode
+                    # Set lownode as the downnode of the closest
+                    
+                    # Another possible approach:
+                    # Check all neighbors of pit
+                        # If lowest
+    
+
+            
+                    #minoverlap.setDownnode(lownode)                  
+                    #    if overlap[i].getElevation() < minoverlap.getElevation():
+                    #        minoverlap = overlap[i]
+                    #minoverlap.setDownnode(lownode)
+                    # If lownode IS an upnode of any nodes in the exclude list
+                                        # Overlap:
+                    #overlap = [x for x in self.getNeighbours(lowy, lowx) if x in exc]
+                    #minoverlap = overlap[0]
+                    #for i in range(1, len(overlap)):
+                    #    if np.sqrt((lownode.get_x() - minoverlap.get_x())**2 + (lownode.get_y() - minoverlap.get_y())**2) > np.sqrt((lownode.get_x() - overlap[i].get_x())**2 + (lownode.get_y() - overlap[i].get_y())**2):
+                    #        minoverlap = overlap[i]
+                    #minoverlap.setDownnode(lownode)
+                

@@ -234,3 +234,102 @@ for i in range(fr.getRows()):
         fr.getData()[i,j]._y = fr.getData()[i,j]._y / 10
 
 
+# Code to manually derive the maximum flow rate in the dem
+r = readRaster(path + demfile)
+resampled = r.createWithIncreasedCellsize(10)
+fr = flow.FlowRaster(resampled)
+
+rain = readRaster(path + rainfile)
+fr.addRainfall(rain.getData())
+
+fr.calculateLakes()
+
+values = fr.extractValues(flow.FlowExtractor())
+
+# Max
+np.max(values)
+
+# Row
+rowMax = np.where(values == np.max(values))[0][0]
+# Col
+colMax = np.where(values == np.max(values))[1][0]
+
+
+# Could check if all rain accounted for by summing flow at each pit on the edge
+np.sum(rain.getData())
+
+
+
+xs = [int(neighbour.get_x() / fr.getCellsize()) for neighbour in fr.getNeighbours(10,10)]
+ys = [int(neighbour.get_y() / fr.getCellsize()) for neighbour in fr.getNeighbours(10,10)]
+
+traceArea = fr.getData()[min(xs):max(xs) + 1, min(ys):max(ys) + 1]
+
+def traceBack(area, pit, low):
+    # List neighbors of current traceback node that are in the area of consideration.
+    lowneighbours = [x for x in fr.getNeighbours(10,10) if x in area]
+    
+    # If the original pit is among them, set traceback as downnode. We're done.
+    if pit in lowneighbours:
+        pit.setDownnode(low)
+    
+    #If not, set the traceback as a downnode of the lowest neighbour.
+    else:
+        # Find the lowNeighbour with the lowest elevation.
+        elevs = [x.getElevation() for x in lowneighbours]
+        newlowindex = np.argmin(elevs)  
+        newlow = lowneighbours[newlowindex]
+        
+        # Set low as downnode of newlow.
+        newlow.setDownnode(low)
+        low = newlow
+        low.setDownnode(traceBack(area, pit, low))
+    
+    return low
+
+traceBack(traceArea, fr.getData()[10,10], fr.getData()[11,11])
+area = fr.getNeighbours(11,11)
+
+cs = fr.getCellsize()
+tracenode = fr.getData()[10, 10]
+tnx = int(tracenode.get_x() / cs)
+tny = int(tracenode.get_y() / cs)
+
+lowneighbours = [x for x in fr.getNeighbours(tnx, tny) if x in area]
+
+elevs = [x.getElevation() for x in lowneighbours]
+newtraceindex = elevs.index(min(elevs))
+newtrace = lowneighbours[newtraceindex]
+
+ def traceBack(self, area, pit, tracenode):
+        
+        # Get coords of current tracenode.
+        cs = self.getCellsize()
+        tnx = int(tracenode.get_x() / cs)
+        tny = int(tracenode.get_y() / cs)
+        
+        # List neighbors of current traceback node that are in the area of consideration.
+        lowneighbours = [x for x in self.getNeighbours(tnx, tny) if x in area]
+        
+        # If the original pit is among them, set traceback as downnode. We're done.
+        if pit in lowneighbours:
+            pit.setDownnode(tracenode)
+        
+        #If not, set the traceback as a downnode of the lowest neighbour.
+        else:
+            # Find the lowNeighbour with the lowest elevation.
+            # COULD USE ABOVE METHODS
+            
+            elevs = [x.getElevation() for x in lowneighbours]
+            #newtraceindex = np.argmin([0,elevs])  
+            newtraceindex = elevs.index(min(elevs))
+            newtrace = lowneighbours[newtraceindex]
+            
+            # Set low as downnode of newlow.
+            newtrace.setDownnode(tracenode)
+            #tracenode = newtrace
+            
+            FlowRaster.traceBack(self, area, pit, newtrace)
+            #tracenode.setDownnode(traceBack(area, pit, tracenode))
+            
+        return newtrace

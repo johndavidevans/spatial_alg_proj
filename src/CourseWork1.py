@@ -26,10 +26,11 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     print ("\n\n{}".format(title))
     
     # Added to make the plot more viewable.
-    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
-    
+    mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
+    mp.title(label = ("\n\n{}".format(title)),
+             fontdict = {'fontsize':24})
     # Plot.
-    ###fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
+    #fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
     
     mp.imshow(originalRaster._data)
     mp.colorbar()
@@ -38,37 +39,29 @@ def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
     colouri=-1
     colours=["black","red","magenta","yellow","green","cyan","white","orange","grey","brown"]
     
-    ###counter = 0 # tempt for finding locations
     # Iterate over all cells.
     for i in range(flowRaster.getRows()):   
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
-
-            ###ax.text(j, i, '%.1f'%node.getElevation(),  # Diagnostic
-            ###               ha="center", va="center", color="k") # Diagnostic
             
             # Plot pits, associated streams, and if specified and populated, lakes.            
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(), node.get_y(), color="red")
-                ###if counter == 0: # tempt for finding locations
-                ###    mp.scatter(node.get_x(), node.get_y(), color = "orange", s = 200) # tempt for finding locations
-                ###    counter += 1 # tempt for finding locations
                 colouri += 1
                 plotstreams(node, colours[colouri % len(colours)])
             if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
-                mp.scatter(node.get_x(), node.get_y(), color="blue")
-                
-                ###ax.text(j, i, '%.1f'%node.getLakeDepth(),  # Diagnostic
-                ###           ha="center", va="center", color="orange") # Diagnostic
+                mp.scatter(node.get_x(), node.get_y(), color="deepskyblue")
 
     mp.show()
 
 def plotExtractedData(flowRaster, extractor, title=""):
     """ Plots data extracted from input FlowRaster."""
     print ("\n\n{}".format(title))
-    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(flowRaster.extractValues(extractor))  
     mp.colorbar()
+    mp.title(label = ("\n\n{}".format(title)),
+             fontdict = {'fontsize':24})
     mp.show()
 
 def plotRaster(araster, title=""):
@@ -76,9 +69,11 @@ def plotRaster(araster, title=""):
     print ("\n\n{}, shape is  {}".format(title, araster.shape))
     
     #*** Added to make plot more viewable.
-    mp.figure(num=None, figsize=(12, 8), dpi=80, facecolor='w', edgecolor='k')
+    mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(araster)
     mp.colorbar()
+    mp.title(label = ("\n\n{}, shape is  {}".format(title, araster.shape)),
+             fontdict = {'fontsize':24})
     mp.show()
 
 
@@ -150,5 +145,21 @@ rainfile = r'\Rainfall.txt'
 calculateFlowsAndPlot(readRaster(path + demfile), readRaster(path + rainfile), 10)
 #calculateFlowsAndPlot(readRaster('ascifiles/dem_hack.txt'), readRaster('ascifiles/rain_small_hack.txt'), 10)
 
+r = readRaster(path + demfile)
+resampled = r.createWithIncreasedCellsize(10)
+fr = flow.FlowRaster(resampled)
 
+rain = readRaster(path + rainfile)
+fr.addRainfall(rain.getData())
 
+fr.calculateLakes()
+
+fr.extractValues(flow.FlowExtractor())
+
+np.min(rain.getData())
+
+# Add command line tools
+# Pass a list to determine which sections of code are run
+# Pass 'Big' to resize the map to 36x24 for higher levels of detail
+# Tools to find the highest flow on a specified map.
+# Modify to cause lakes to draw in blue scaled to depth

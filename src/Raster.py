@@ -48,25 +48,30 @@ class Raster(object):
        Returns a new Raster with cell size larger by a 
        factor (which must be an integer).
        """
+       # If resampling by factor 1, nothing needs to be done.
        if factor == 1:
            return self
        else:
+            # Initialize a blank array to store resampled values.
             newRowNum = self.getRows() // factor
             newColNum = self.getCols() // factor
             newData = np.zeros([newRowNum, newColNum])
             
+            # Iterate through all cells of the blank array.
             for i in range(newRowNum):
                for j in range(newColNum):
+
+                   # For each cell in the new array, take the sum of all 
+                   # corresponding factor^2 cells in the original Raster.
                    sumCellValue = 0.0
-            
                    for k in range(factor):
                        for l in range(factor):
-                           sumCellValue += self._data[i * factor + k, j * factor + l]
-                   
+                           sumCellValue += self._data[i * factor + k, 
+                                                      j * factor + l]                   
                    newData[i,j] = sumCellValue / factor ** 2
 
-                    
-       return Raster(newData, self._orgs[0], self._orgs[1], factor)#self._cellsize * factor)
+       # Return a raster.             
+       return Raster(newData, self._orgs[0], self._orgs[1], factor)
            
            
            
