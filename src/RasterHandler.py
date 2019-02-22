@@ -10,48 +10,52 @@ import random
 import math
 
 def readRaster(fileName):
-    """ Generates a raster object from a ARC-INFO ascii format file"""
+    """ Generates a raster object from a ARC-INFO ascii format file."""
     
     lines = []
-    myFile=open(fileName,'r')
+    myFile = open(fileName, 'r')
         
-    end_header=False
-    xll=0.
-    yll=0.
-    nodata=-999.999
-    cellsize=1.0
+    end_header = False
     
+    # Defaults. None given for nrows or ncols.
+    xll = 0.
+    yll = 0.
+    nodata = -999.999
+    cellsize = 1.0
+    
+    # Search through first lines of file for raster keywords.
     while (not end_header):
-        line=myFile.readline()    
-        items=line.split()
-        keyword=items[0].lower()
-        value=items[1]
-        if (keyword=='ncols'):
-            ncols=int(value)
-        elif (keyword=='nrows'):
-            nrows=int(value)
-        elif (keyword=='xllcorner'):
-            xll=float(value)
-        elif (keyword=='yllcorner'):
-            yll=float(value)  
-        elif (keyword=='nodata_value'):
-            nodata=float(value)
-        elif (keyword=='cellsize'):
-            cellsize=float(value)  
+        line = myFile.readline()    
+        items = line.split()
+        keyword = items[0].lower()
+        value = items[1]
+        if (keyword == 'ncols'):
+            ncols = int(value)
+        elif (keyword == 'nrows'):
+            nrows = int(value)
+        elif (keyword == 'xllcorner'):
+            xll = float(value)
+        elif (keyword == 'yllcorner'):
+            yll = float(value)  
+        elif (keyword == 'nodata_value'):
+            nodata = float(value)
+        elif (keyword == 'cellsize'):
+            cellsize = float(value)  
         else:
-            end_header=True
-
-    if (nrows==None or ncols==None):
+            end_header = True
+    
+    # Give an error message if file is missing nrows or ncols.
+    if (nrows == None or ncols == None):
         print ("Row or Column size not specified for Raster file read")
         return None
     
 
-    items=line.split()
+    items = line.split()
 
-        
-    datarows=[]
-    items=line.split()
-    row=[]
+    # Iterate through all lines and append data.        
+    datarows = []
+    items = line.split()
+    row = []
     for item in items:
         row.append(float(item))
  
@@ -60,23 +64,21 @@ def readRaster(fileName):
         
     for line in myFile.readlines():
         lines.append(line)
-        items=line.split()
-        row=[]
+        items = line.split()
+        row = []
         for item in items:
             row.append(float(item))
    
         datarows.append(row)
 
-    data=np.array(datarows)
+    data = np.array(datarows)
     
-    return Raster(data,xll,yll,cellsize,nodata)
+    return Raster(data, xll, yll, cellsize, nodata)
     
     
-#def createRanRaster(rows=25,cols-25,cellsize=1,xorg=0,yorg=0,nodata=-999.999,levels=1,datahi=0.,datalo=0.:
 def createRanRaster(rows=20,cols=30,cellsize=1,xorg=0,yorg=0,nodata=-999.999,levels=5,datahi=100.,datalo=0.):
  
-   #print (rows,cols,levels)
-   
+      
    levels=min(levels,rows)
    levels=min(levels,cols)
    data=np.zeros([levels,rows,cols])  
@@ -84,20 +86,18 @@ def createRanRaster(rows=20,cols=30,cellsize=1,xorg=0,yorg=0,nodata=-999.999,lev
    
    for x in np.nditer(data,op_flags=['readwrite']):
        x[...]=random.uniform(datalo,datahi) 
-   #print data
    
 
    
    for i in range(levels):
        lin=((i)*2)+1
        lin2=lin*lin
-       #print (lin,lin2)
+   
        iterator=np.zeros([lin2,2], dtype=int)
        for itx in range(lin):
            for ity in range(lin):
                iterator[itx*lin+ity,0]=(itx-i)
                iterator[itx*lin+ity,1]=(ity-i)
-       #print iterator
        
        
        part=data[i]

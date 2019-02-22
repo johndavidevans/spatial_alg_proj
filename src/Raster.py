@@ -45,8 +45,8 @@ class Raster(object):
         
     def createWithIncreasedCellsize(self, factor):
        """
-       Returns a new Raster with cell size larger by a 
-       factor (which must be an integer).
+       Returns a new Raster with cell size larger by a factor (which must be an
+       integer). Completed as part of Task 5.
        """
        # If resampling by factor 1, nothing needs to be done.
        if factor == 1:
@@ -57,12 +57,10 @@ class Raster(object):
             newColNum = self.getCols() // factor
             newData = np.zeros([newRowNum, newColNum])
             
-            # Iterate through all cells of the blank array.
+            # For each cell in the new array, calculate the average of the
+            # corresponding factor^2 cells in the original Raster.
             for i in range(newRowNum):
                for j in range(newColNum):
-
-                   # For each cell in the new array, take the sum of all 
-                   # corresponding factor^2 cells in the original Raster.
                    sumCellValue = 0.0
                    for k in range(factor):
                        for l in range(factor):

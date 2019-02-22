@@ -11,7 +11,7 @@ class Point2D(object):
     '''A class to represent 2-D points'''
 
     def __init__(self,x,y):  
-        """Standard initialisation method used to instantiate an instance."""      
+        """Initializes an instance of Point2D."""      
         #ensure points are always reals
         self._x=x*1.
         self._y=y*1.
@@ -37,7 +37,7 @@ class Point2D(object):
             return self._y
                     
     def get_xys(self):
-        """Returns x,y tuple."""
+        """Returns an x, y tuple."""
         return (self.x, self._y)        
     
     def move(self, x_move, y_move):
@@ -47,7 +47,6 @@ class Point2D(object):
             
     def distance(self, other_point):
         """Returns distance between self and another point."""
-        #put in check to see if other point is a point
         xd = self._x - other_point._x
         yd = self._y - other_point._y
         return math.sqrt((xd * xd) + (yd * yd))
@@ -58,16 +57,13 @@ class Point2D(object):
         otherX = other_point.get_x()
         otherY = other_point.get_y()
 
-        #*** All geometry is in radians 
-        # we could convert to degrees if we wanted
-        # math.pi is a  funtion of the math module
+        # All geometry is in radians but could convert to degrees.
         distance = self.distance(other_point)
         sinTheta = (otherX - self._x) / distance
         cosTheta = (otherY - self._y) / distance
         aSinTheta = math.asin(sinTheta)
         
-        #***These conditions give an angle between 0 and 2 Pi radians
-        #You should test them to make sure they are correct
+        # These conditions give an angle between 0 and 2 Pi radians.
         if (sinTheta >= 0.0 and cosTheta >= 0.0):
             theta = aSinTheta
         elif (cosTheta < 0.0):
