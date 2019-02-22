@@ -3,53 +3,47 @@ from RasterHandler import readRaster
 import matplotlib.pyplot as mp
 import Flow as flow
 
-def plotstreams(flownode,colour):
-    """
-    Plots streams by recursing up until reaching a node with no upnodes.
-    """
+def plotstreams(flownode, colour):
+    """Plots streams by recursing up until reaching a node with no upnodes."""
     for node in flownode.getUpnodes():
-        # Gets coords of node passed, and (iteratively) plot line to
+        # Gets coords of node passed, and recursively plot line to
         # each of its upnodes.
-        x1 = flownode.get_x() #*** Would be more efficient for these to be outside loop.
-        y1 = flownode.get_y() #*** Would be more efficient for these to be outside loop.
+        x1 = flownode.get_x()
+        y1 = flownode.get_y()
         x2 = node.get_x()
         y2 = node.get_y()
         mp.plot([x1, x2], [y1, y2], color = colour)
         if (node.numUpnodes() > 0):
             plotstreams(node, colour)  # The recursion.
     
-
 def plotFlowNetwork(originalRaster, flowRaster, title="", plotLakes=True):
-    """
-    Overlays a FlowRaster onto its associated elevation raster.
-    """
+    """Overlays a FlowRaster onto its associated elevation raster."""
     print ("\n\n{}".format(title))
     
-    # Added to make the plot more viewable.
+    # Added to improve viewability.
     mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
     mp.title(label = ("\n\n{}".format(title)),
              fontdict = {'fontsize':24})
-    # Plot.
-    #fig, ax = mp.subplots(figsize = (36, 24)) # Diagnostic
     
+    # Plot.    
     mp.imshow(originalRaster._data)
     mp.colorbar()
     
     #  Set parameters for plotting streams
-    colouri=-1
-    colours=["black","red","magenta","yellow","green","cyan","white","orange","grey","brown"]
+    colouri = -1
+    colours = ["black", "red", "magenta", "yellow", "green", "cyan", "white", 
+               "orange", "grey", "brown"]
     
-    # Iterate over all cells.
+    # Plot pits, associated streams, and if specified and populated, lakes.
     for i in range(flowRaster.getRows()):   
         for j in range(flowRaster.getCols()):
             node = flowRaster._data[i,j]
             
-            # Plot pits, associated streams, and if specified and populated, lakes.            
             if (node.getPitFlag()): # dealing with a pit
                 mp.scatter(node.get_x(), node.get_y(), color="red")
                 colouri += 1
                 plotstreams(node, colours[colouri % len(colours)])
-            if (plotLakes and node.getLakeDepth() > 0): # getLakeDepth() needs to be defined.
+            if (plotLakes and node.getLakeDepth() > 0):
                 mp.scatter(node.get_x(), node.get_y(), color="deepskyblue")
 
     mp.show()
@@ -68,7 +62,7 @@ def plotRaster(araster, title=""):
     """Plots a raster."""
     print ("\n\n{}, shape is  {}".format(title, araster.shape))
     
-    #*** Added to make plot more viewable.
+    # Added improve viewability.
     mp.figure(num=None, figsize=(15, 10), dpi=80, facecolor='w', edgecolor='k')
     mp.imshow(araster)
     mp.colorbar()
@@ -78,6 +72,11 @@ def plotRaster(araster, title=""):
 
 
 def calculateFlowsAndPlot(elevation, rain, resampleF):
+    """
+    The main function to execute the project. Processes elevation and rain
+    data, producing a series of plots of elevations, flow networks, and lake
+    depths.
+    """
     # plot input rasters
     plotRaster(elevation.getData(), "Original elevation (m)")
     plotRaster(rain.getData(), "Rainfall")
@@ -137,29 +136,8 @@ rainrasterA = createRanRasterSlope(rows // resampleFactorA,
 calculateFlowsAndPlot(elevationRasterA, rainrasterA, resampleFactorA)
     
 ############# step 5 #######################################
-# Test with DEM.txt.
-path = r'C:\Users\johnd\OneDrive\EdinburghU\Semester 2\OOSE SA\Coursework\myrepo\data'
-demfile = r'\DEM.txt'
-rainfile = r'\Rainfall.txt'
-
+path = "../data"
+demfile = "\DEM.txt"
+rainfile = "\Rainfall.txt"
 calculateFlowsAndPlot(readRaster(path + demfile), readRaster(path + rainfile), 10)
-#calculateFlowsAndPlot(readRaster('ascifiles/dem_hack.txt'), readRaster('ascifiles/rain_small_hack.txt'), 10)
 
-r = readRaster(path + demfile)
-resampled = r.createWithIncreasedCellsize(10)
-fr = flow.FlowRaster(resampled)
-
-rain = readRaster(path + rainfile)
-fr.addRainfall(rain.getData())
-
-fr.calculateLakes()
-
-fr.extractValues(flow.FlowExtractor())
-
-np.min(rain.getData())
-
-# Add command line tools
-# Pass a list to determine which sections of code are run
-# Pass 'Big' to resize the map to 36x24 for higher levels of detail
-# Tools to find the highest flow on a specified map.
-# Modify to cause lakes to draw in blue scaled to depth
